@@ -1,1 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Malla Contador Auditor – ECAS</title>
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    #mynetwork {
+      width: 100%;
+      height: 90vh;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Malla Interactiva – Contador Auditor ECAS</h2>
+  <div id="mynetwork"></div>
+
+  <script>
+    const nodes = new vis.DataSet([
+      { id: 1, label: "Álgebra", color: "#ADD8E6", estado: "inicial" },
+      { id: 2, label: "Cálculo I", color: "#ADD8E6", estado: "bloqueado" },
+      { id: 3, label: "Contabilidad I", color: "#ADD8E6", estado: "bloqueado" }
+    ]);
+
+    const edges = new vis.DataSet([
+      { from: 1, to: 2 },
+      { from: 1, to: 3 }
+    ]);
+
+    const container = document.getElementById("mynetwork");
+    const data = { nodes: nodes, edges: edges };
+    const options = {
+      layout: { hierarchical: { direction: "LR" } },
+      nodes: {
+        shape: "box",
+        font: { color: "black" }
+      },
+      interaction: { hover: true }
+    };
+    const network = new vis.Network(container, data, options);
+
+    const desbloquear = (id) => {
+      edges.forEach(edge => {
+        if (edge.from === id) {
+          const destino = nodes.get(edge.to);
+          const prereqs = edges.get({
+            filter: e => e.to === edge.to
+          }).map(e => nodes.get(e.from).estado);
+          if (prereqs.every(est => est === "aprobado")) {
+            nodes.update({ id: destino.id, color: "#87CEFA", estado: "desbloqueado" });
+          }
+        }
+      });
+    };
+
+    network.on("click", function (params) {
+      if (params.nodes.length > 0) {
+        const id = params.nodes[0];
+        const nodo = nodes.get(id);
+        if (nodo.estado !== "aprobado") {
+          nodes.update({ id: id, color: "#90EE90", estado: "aprobado" });
+          desbloquear(id);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
 
